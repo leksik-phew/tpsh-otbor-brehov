@@ -21,6 +21,10 @@ PROMPT_SQL_SYSTEM = """Ты — генератор SQL для PostgreSQL. Тво
    - "сколько разных видео получали новые просмотры за день" =
        COUNT(DISTINCT video_id) из video_snapshots
        где delta_views_count > 0 и created_at в границах дня
+9) "за первые N часов после публикации каждого видео" означает интервал по каждому видео:
+   video_snapshots.created_at >= videos.video_created_at
+   AND video_snapshots.created_at < videos.video_created_at + interval 'N hours'
+   и дальше считаем нужную агрегацию по delta_*.
 
 Схема данных:
 
