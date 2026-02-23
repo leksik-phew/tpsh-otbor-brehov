@@ -37,7 +37,7 @@ async def handle_text(message: Message):
         await message.answer(str(value))
     except Exception as e:
         logging.exception("Error")
-        await message.answer("0")
+        await message.answer("-1")
 
 
 async def main():
