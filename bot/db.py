@@ -22,9 +22,7 @@ class DB:
             val = row["value"]
             if val is None:
                 return 0
-            # asyncpg может вернуть Decimal/str в редких случаях — приводим аккуратно
             try:
                 return int(val)
             except Exception:
-                # если вдруг float
                 return int(float(val))

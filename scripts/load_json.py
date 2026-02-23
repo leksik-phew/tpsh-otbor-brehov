@@ -8,7 +8,6 @@ import asyncpg
 
 
 def _parse_dt(s: str) -> datetime:
-    # ISO8601, пример: "2025-11-26T11:00:08.983295+00:00"
     return datetime.fromisoformat(s.replace("Z", "+00:00"))
 
 
@@ -63,7 +62,7 @@ ON CONFLICT (id) DO UPDATE SET
 
 
 async def main():
-    dsn = os.environ["DATABASE_URL"]  # пример: postgresql://postgres:postgres@db:5432/postgres
+    dsn = os.environ["DATABASE_URL"] 
     path = os.environ.get("JSON_PATH", "data/videos.json")
 
     with open(path, "r", encoding="utf-8") as f:

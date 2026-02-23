@@ -14,7 +14,7 @@ CHAT_COMPLETIONS_URL = f"{API_BASE}/api/v1/chat/completions"
 @dataclass
 class _Token:
     access_token: str
-    expires_at_unix: int  # seconds since epoch
+    expires_at_unix: int
 
 
 class GigaChatLLM:
@@ -40,16 +40,13 @@ class GigaChatLLM:
         self._token: _Token | None = None
 
     async def _get_access_token(self) -> str:
-        # Reuse token until it is close to expiration
         if self._token and (self._token.expires_at_unix - int(time.time()) > 30):
             return self._token.access_token
 
         headers = {
-            # Required header in docs:
             "RqUID": str(uuid.uuid4()),
             "Accept": "application/json",
             "Content-Type": "application/x-www-form-urlencoded",
-            # Required Basic auth header in docs:
             "Authorization": f"Basic {self.auth_key}",
         }
         data = {"scope": self.scope}
@@ -72,7 +69,6 @@ class GigaChatLLM:
             "Authorization": f"Bearer {token}",
         }
 
-        # Формат очень близок к OpenAI Chat Completions:
         body = {
             "model": self.model,
             "messages": [
@@ -88,13 +84,11 @@ class GigaChatLLM:
             r.raise_for_status()
             data = r.json()
 
-        # По документации SDK: choices[0].message.content
         return (data["choices"][0]["message"]["content"] or "").strip()
 
 
 def from_env() -> GigaChatLLM:
     auth_key = os.environ["GIGACHAT_AUTH_KEY"].strip()
-    # если пользователь случайно вставил "Basic ..."
     if auth_key.lower().startswith("basic "):
         auth_key = auth_key.split(" ", 1)[1].strip()
 

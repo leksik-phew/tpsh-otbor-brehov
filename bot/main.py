@@ -36,10 +36,7 @@ async def handle_text(message: Message):
         value = await db.fetch_value(sql)
         await message.answer(str(value))
     except Exception as e:
-        # В автопроверке, как правило, лучше вернуть число всегда.
-        # Но если хотите видеть ошибки — можно логировать.
         logging.exception("Error")
-        # Безопасный "дефолт", чтобы не ломать формат ответа:
         await message.answer("0")
 
 

@@ -18,12 +18,10 @@ def validate_sql(sql: str) -> None:
     if FORBIDDEN.search(s):
         raise ValueError("Запрещены изменяющие операции")
 
-    # проверка таблиц после FROM/JOIN
     for m in BAD_TABLES.finditer(s):
         table = m.group(2).lower()
         if table not in ALLOWED_TABLES:
             raise ValueError(f"Запрещённая таблица: {table}")
 
-    # должно возвращаться одно значение с алиасом value (мягко проверяем)
     if re.search(r"\bas\s+value\b", s, re.I) is None:
         raise ValueError("Нужно вернуть одно число с алиасом AS value")

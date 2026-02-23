@@ -32,12 +32,10 @@ CREATE TABLE IF NOT EXISTS video_snapshots (
     updated_at          timestamptz NOT NULL
 );
 
--- Индексы под типичные запросы:
 CREATE INDEX IF NOT EXISTS idx_videos_creator_id ON videos(creator_id);
 CREATE INDEX IF NOT EXISTS idx_videos_video_created_at ON videos(video_created_at);
 
 CREATE INDEX IF NOT EXISTS idx_snapshots_video_id_created_at ON video_snapshots(video_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_snapshots_created_at ON video_snapshots(created_at);
 
--- Часто спрашивают "за день прирост суммарно":
 CREATE INDEX IF NOT EXISTS idx_snapshots_day ON video_snapshots ((date_trunc('day', created_at)));
