@@ -16,13 +16,31 @@ BOT_TOKEN = os.environ["BOT_TOKEN"]
 DATABASE_URL = os.environ["DATABASE_URL"]
 
 
-
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
 db = DB(DATABASE_URL)
 llm = from_env()
 
+def normalize_sql(sql: str) -> str:
+    s = (sql or "").strip()
+
+    # убрать ```sql ... ``` или ``` ... ```
+    if s.startswith("```"):
+        s = s.strip().strip("`").strip()
+        lines = s.splitlines()
+        if lines and lines[0].lower().strip() == "sql":
+            s = "\n".join(lines[1:]).strip()
+
+    # отрезать всё после первого ';'
+    if ";" in s:
+        s = s.split(";", 1)[0].strip()
+
+    # убрать возможный префикс "SQL:"/"sql:"
+    if s.lower().startswith("sql:"):
+        s = s[4:].strip()
+
+    return s
 
 @dp.message(F.text)
 async def handle_text(message: Message):
@@ -30,14 +48,22 @@ async def handle_text(message: Message):
     if not user_text:
         return
 
+    sql = await llm.to_sql(PROMPT_SQL_SYSTEM, user_text)
+    sql = normalize_sql(sql)
+
     try:
-        sql = await llm.to_sql(PROMPT_SQL_SYSTEM, user_text)
         validate_sql(sql)
-        value = await db.fetch_value(sql)
-        await message.answer(str(value))
     except Exception as e:
-        logging.exception("Error")
-        await message.answer("-1")
+        repair_prompt = (
+            PROMPT_SQL_SYSTEM
+            + "\n\nВАЖНО: Верни ТОЛЬКО SQL-SELECT без Markdown и без текста вокруг."
+        )
+        sql = await llm.to_sql(repair_prompt, user_text)
+        sql = normalize_sql(sql)
+        validate_sql(sql)
+    
+    value = await db.fetch_value(sql)
+    await message.answer(str(value))
 
 
 async def main():
